@@ -1,0 +1,52 @@
+.profile-container {
+  padding: 16px;
+  padding-bottom: 135px;
+
+  .profile-info {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    align-items: center !important;
+    .profile-name {
+      // prettier-ignore
+      font-size: 18Px;
+      font-weight: bold;
+    }
+    .profile-email {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+  }
+
+  .profile-personal {
+    .profile-personal-cell-title {
+      display: flex;
+      align-items: center !important;
+      gap: 12px;
+    }
+  }
+}
+
+.login-btn {
+  margin: 32px 0;
+}
+
+.about-popup-content {
+  padding: 20px;
+
+  .content-title {
+    // prettier-ignore
+    font-size: 18Px;
+    font-weight: bold;
+    margin-bottom: 12px;
+    display: block;
+  }
+  .content-body {
+    // prettier-ignore
+    font-size: 14Px;
+    margin-bottom: 12px;
+    display: block;
+    line-height: 1.6;
+  }
+}

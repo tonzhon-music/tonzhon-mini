@@ -1,7 +1,7 @@
 import { Close, Del, Refresh, Reload } from "@nutui/icons-react-taro";
 import { Cell, Popup, Empty } from "@nutui/nutui-react-taro";
 import { View, Text, ScrollView } from "@tarojs/components";
-import { usePlayerStore, type PlayBackOrder } from "@/store";
+import { usePlayerStore } from "@/store";
 import { usePlayer } from "@/hooks";
 import Taro from "@tarojs/taro";
 import { clsx } from "@/utils";

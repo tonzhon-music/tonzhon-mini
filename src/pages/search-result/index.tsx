@@ -1,9 +1,11 @@
 import { ScrollView, View, Text } from "@tarojs/components";
 import Taro, { useRouter } from "@tarojs/taro";
-import { searchAll, type Song } from "@/api";
-import { useEffect, useState } from "react";
+import { searchAll, getSongsOfArtist, searchFromPlatform, type Song } from "@/api";
+import { useEffect, useMemo, useState } from "react";
 import SongList from "@/components/song-list";
 import Player from "@/components/player";
+import { SafeArea } from "@nutui/nutui-react-taro";
+import { uniqBy } from "@/utils";
 
 import "./index.scss";
 
@@ -12,50 +14,103 @@ export default function SearchResult() {
     params: { keyword },
   } = useRouter<{ keyword: string }>();
   const [songs, setSongs] = useState<Song[]>([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [searchArtistSongLoading, setSearchArtistSongLoading] = useState(false);
+  const [searchPlatformLoading, setSearchPlatformLoading] = useState(false);
+
+  // 整合所有的搜索结果，去重并排序
+  const filteredSongs = useMemo(() => {
+    if (songs.length) {
+      const uniqueSongs = uniqBy(songs, "newId");
+      // 有封面的在前面
+      return [...uniqueSongs].sort((a, b) => {
+        const aHasCover = Boolean(a.cover);
+        const bHasCover = Boolean(b.cover);
+
+        if (aHasCover === bHasCover) return 0;
+        return aHasCover ? -1 : 1;
+      });
+    }
+    return [];
+  }, [songs]);
 
   useEffect(() => {
     if (keyword) {
-      Taro.showLoading({
-        title: "搜索中...",
-      });
+      setSearchLoading(true);
       searchAll(keyword)
         .then((res) => {
           if (res.data.success) {
-            setSongs(res.data.data || []);
+            setSongs((prevSongs) => [...prevSongs, ...(res.data.data ?? [])]);
           } else {
             throw new Error();
           }
         })
-        .catch(() => {
-          Taro.showToast({
-            title: "搜索失败",
-            icon: "error",
-          });
-          setSongs([]);
-        })
         .finally(() => {
-          Taro.hideLoading();
+          setSearchLoading(false);
         });
     }
   }, [keyword]);
+
+  useEffect(() => {
+    if (keyword) {
+      setSearchArtistSongLoading(true);
+      getSongsOfArtist(keyword)
+        .then((res) => {
+          if (res.data?.songs?.length) {
+            setSongs((prevSongs) => [...prevSongs, ...(res.data?.songs ?? [])]);
+          }
+        })
+        .finally(() => {
+          setSearchArtistSongLoading(false);
+        });
+    }
+  }, [keyword]);
+
+  useEffect(() => {
+    const platforms = ["q", "n", "k"] as const;
+    if (keyword) {
+      setSearchPlatformLoading(true);
+      Promise.allSettled(platforms.map((c) => searchFromPlatform(keyword, c)))
+        .then((results) => {
+          results.forEach((r) => {
+            if (r.status === "fulfilled") {
+              if (r.value.data.success) {
+                setSongs((prevSongs) => [...prevSongs, ...(r.value.data?.data?.songs ?? [])]);
+              }
+            }
+          });
+        })
+        .finally(() => {
+          setSearchPlatformLoading(false);
+        });
+    }
+  }, [keyword]);
+
+  useEffect(() => {
+    if (searchLoading || searchArtistSongLoading || searchPlatformLoading) {
+      Taro.showLoading({
+        title: "搜索中...",
+      });
+    } else {
+      Taro.hideLoading();
+    }
+  }, [searchLoading, searchArtistSongLoading, searchPlatformLoading]);
 
   return (
     <ScrollView scrollY>
       <View className="search-result">
         <SongList
-          songs={songs}
+          songs={filteredSongs}
           title={
-            songs.length ? (
-              <View>
-                <Text>搜索</Text>
-                <Text className="highlight">{keyword}</Text>
-              </View>
-            ) : (
-              "暂无搜索结果"
-            )
+            <View>
+              <Text>搜索</Text>
+              <Text className="highlight">{keyword}</Text>
+            </View>
           }
+          extra={<Text className="grey">共 {filteredSongs.length} 搜索结果</Text>}
         />
       </View>
+      <SafeArea position="bottom" />
       <Player />
     </ScrollView>
   );

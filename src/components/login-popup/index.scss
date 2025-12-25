@@ -1,0 +1,28 @@
+.login-popup {
+  height: 100%;
+  &.nut-popup-bottom.nut-popup-round {
+    border-radius: 0;
+  }
+  .login-popup-body {
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 24px;
+
+    .login-form {
+      // 略微向上平移一点
+      transform: translateY(-32px);
+      width: 100%;
+      .login-title {
+        // prettier-ignore
+        font-size: 20Px;
+        font-weight: bold;
+        margin-bottom: 16px;
+        text-align: center;
+        display: block;
+        color: #dc8f03;
+      }
+    }
+  }
+}

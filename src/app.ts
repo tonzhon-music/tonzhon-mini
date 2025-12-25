@@ -1,7 +1,7 @@
 import { PropsWithChildren, useEffect } from "react";
-import { backgroundAudioManager, usePlayerStore } from "@/store";
+import { backgroundAudioManager, useAuthStore, usePlayerStore } from "@/store";
 import Taro, { useLaunch } from "@tarojs/taro";
-import { usePlayer } from "@/hooks";
+import { useAuth, usePlayer } from "@/hooks";
 
 import "@nutui/nutui-react-taro/dist/style.css";
 import "@/assets/font/iconfont.css";
@@ -10,7 +10,9 @@ import "./app.scss";
 function App({ children }: PropsWithChildren<any>) {
   const setIsPlaying = usePlayerStore((state) => state.setIsPlaying);
   const setPlaybackProgress = usePlayerStore((state) => state.setPlaybackProgress);
+  const login = useAuthStore((state) => state.login);
   const { playNextSong, playPreviousSong } = usePlayer();
+  const { refreshUserInfo, refreshFavoriteSongs } = useAuth();
 
   // 全局监听播放器状态变化
   useEffect(() => {
@@ -70,6 +72,18 @@ function App({ children }: PropsWithChildren<any>) {
       console.log("监听到 seeked 事件");
     });
   }, [playNextSong, playPreviousSong, setIsPlaying, setPlaybackProgress]);
+
+  useEffect(() => {
+    // 初始化登录状态
+    refreshUserInfo();
+  }, [refreshUserInfo]);
+
+  useEffect(() => {
+    if (login) {
+      // 若已登录获取我喜欢的音乐
+      refreshFavoriteSongs();
+    }
+  }, [login, refreshFavoriteSongs]);
 
   return children;
 }

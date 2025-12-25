@@ -1,15 +1,28 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import Taro from "@tarojs/taro";
 import {
   usePlayerStore,
   clearBackgroundAudioManager,
   addSongToBackgroundAudioManager,
   backgroundAudioManager,
+  useAuthStore,
 } from "@/store";
-import { type Song } from "@/api";
-import { isNil } from "@/utils";
+import {
+  addPlaylistToCollection,
+  addSongToFavorite,
+  getFavoriteSongs,
+  getUserInfo,
+  Playlist,
+  PlaylistInfo,
+  removeSongFromFavorite,
+  signout,
+  type Song,
+} from "@/api";
 
-// 获取播放器高度
+/**
+ * @deprecated
+ * 获取播放器高度, 现在高度直接写死
+ */
 export function usePlayerHeight() {
   const [playerHeight, setPlayerHeight] = useState(0);
 
@@ -214,4 +227,226 @@ export function usePlayer() {
     addSongToQueue,
     togglePlaybackOrder,
   };
+}
+
+// 认证相关方法
+export function useAuth() {
+  const { resetAuth, setLogin, setUser, openLoginPopup, setFavoriteSongs } = useAuthStore();
+  const login = useAuthStore((state) => state.login);
+
+  // 退出登录确认弹框
+  const confirmSignout = useCallback(() => {
+    // 退出登录
+    Taro.showModal({
+      title: "是否退出登录?",
+      confirmColor: "#dc8f03",
+    }).then((res) => {
+      if (res.confirm) {
+        signout()
+          .then((r) => {
+            if (r.statusCode === 200) {
+              Taro.showToast({
+                title: "已退出登录",
+                icon: "success",
+              });
+              // 清空登录状态
+              resetAuth();
+            } else {
+              throw new Error();
+            }
+          })
+          .catch(() => {
+            Taro.showToast({
+              title: "退出登录失败",
+              icon: "error",
+            });
+          });
+      }
+    });
+  }, [resetAuth]);
+
+  // 刷新登录状态并且获取最新用户信息
+  const refreshUserInfo = useCallback(() => {
+    getUserInfo()
+      .then((res) => {
+        if (res.statusCode === 200) {
+          setLogin(true);
+          setUser(res.data);
+        } else {
+          setLogin(false);
+        }
+      })
+      .catch(() => {
+        setLogin(false);
+      });
+  }, [setLogin, setUser]);
+
+  // 获取我喜欢的音乐
+  const refreshFavoriteSongs = useCallback(() => {
+    return getFavoriteSongs().then((res) => {
+      if (res.data.success) {
+        setFavoriteSongs(res.data.songs);
+      }
+    });
+  }, [setFavoriteSongs]);
+
+  // 通过 promise 的方式检查是否登录, 未登录则打开登录弹框
+  const checkLogin = useCallback(() => {
+    if (!login) {
+      openLoginPopup();
+      return Promise.reject();
+    }
+    return Promise.resolve();
+  }, [login, openLoginPopup]);
+
+  return {
+    confirmSignout,
+    refreshUserInfo,
+    refreshFavoriteSongs,
+    checkLogin,
+  };
+}
+
+// 歌曲喜欢的相关方法
+export function useFavorite() {
+  const { refreshFavoriteSongs } = useAuth();
+  const favoriteSongs = useAuthStore((state) => state.favoriteSongs);
+
+  // 给定一首歌, 返回该歌曲是否在喜欢的列表里
+  const checkSongFavorite = useCallback(
+    (song?: Song) => {
+      if (!song || !favoriteSongs.length) {
+        return false;
+      }
+      return favoriteSongs.some((s) => s.newId === song?.newId);
+    },
+    [favoriteSongs]
+  );
+
+  const favoriteSong = useCallback(
+    (song?: Song) => {
+      if (!song) {
+        return;
+      }
+      addSongToFavorite(song)
+        .then((res) => {
+          if (res.data.success) {
+            Taro.showToast({
+              title: "已添加到我喜欢",
+              icon: "success",
+            });
+          } else {
+            throw new Error();
+          }
+        })
+        .catch(() => {
+          Taro.showToast({
+            title: "添加喜欢失败",
+            icon: "error",
+          });
+        })
+        .finally(() => {
+          // 无论成功失败更新喜欢列表
+          refreshFavoriteSongs();
+        });
+    },
+    [refreshFavoriteSongs]
+  );
+
+  const unFavoriteSong = useCallback(
+    (song?: Song) => {
+      if (!song) {
+        return;
+      }
+
+      removeSongFromFavorite(song.newId)
+        .then((res) => {
+          if (res.data.success) {
+            Taro.showToast({
+              title: "已取消喜欢",
+              icon: "success",
+            });
+          } else {
+            throw new Error();
+          }
+        })
+        .catch(() => {
+          Taro.showToast({
+            title: "取消喜欢失败",
+            icon: "error",
+          });
+        })
+        .finally(() => {
+          // 无论成功失败更新喜欢列表
+          refreshFavoriteSongs();
+        });
+    },
+    [refreshFavoriteSongs]
+  );
+
+  return {
+    checkSongFavorite,
+    favoriteSong,
+    unFavoriteSong,
+  };
+}
+
+// 歌单收藏的相关方法
+export function usePlaylistCollection() {
+  const collectedPlaylists = useAuthStore((state) => state.user?.collectedPlaylists);
+  const { refreshUserInfo } = useAuth();
+
+  // 该歌单是否被收藏
+  const checkPlaylistCollected = useCallback(
+    (playlist?: Partial<Playlist & PlaylistInfo>) => {
+      const playlistId = playlist?.id || playlist?._id;
+      if (!playlistId) {
+        return false;
+      }
+      return collectedPlaylists?.some((p) => p.id === playlistId);
+    },
+    [collectedPlaylists]
+  );
+
+  // 收藏某歌单
+  const collectPlaylist = useCallback(
+    (playlist?: Partial<Playlist & PlaylistInfo>) => {
+      const playlistId = playlist?.id || playlist?._id;
+
+      if (playlistId && playlist.name) {
+        addPlaylistToCollection(playlistId, playlist.name)
+          .then((res) => {
+            if (res.statusCode >= 200 && res.statusCode < 300) {
+              Taro.showToast({
+                title: "收藏歌单成功",
+                icon: "success",
+              });
+            } else {
+              throw new Error();
+            }
+          })
+          .catch(() => {
+            Taro.showToast({
+              title: "收藏歌单失败",
+              icon: "error",
+            });
+          })
+          .finally(() => {
+            refreshUserInfo();
+          });
+      }
+    },
+    [refreshUserInfo]
+  );
+
+  return {
+    checkPlaylistCollected,
+    collectPlaylist,
+    // TODO: 暂无取消收藏的操作
+  };
+}
+
+// 我创建的歌单相关方法
+export function useMyPlaylist() {
+  return {};
 }

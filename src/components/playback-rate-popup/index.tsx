@@ -38,7 +38,6 @@ export default function PlaybackRatePopup({ visible, onClose }: PlaybackRatePopu
             setPlaybackRate(value);
             // 同步局部状态
             _setPlaybackRate(value);
-            // TODO: ios 貌似不能立马生效, 安卓可以立马生效
             backgroundAudioManager.playbackRate = value;
           }}
           onChanging={(e) => {

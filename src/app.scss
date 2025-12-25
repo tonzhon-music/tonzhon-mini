@@ -9,13 +9,13 @@ page {
   --nutui-hoverbutton-item-background: white;
   --nutui-hoverbutton-item-background-active: #f6f6f6;
   --nutui-pagination-color: rgba(0, 0, 0, 0.88);
-  --nutui-pagination-item-border-color: transparent;
-  --nutui-pagination-disable-background-color: transparent;
+  // --nutui-pagination-item-border-color: transparent;
+  // --nutui-pagination-disable-background-color: transparent;
   --nutui-tabs-titles-background-color: white;
-  --nutui-color-mask-part: #e0e0e0;
+  --nutui-color-mask-part: #eeeeee;
   --nutui-segmented-item-color: rgba(0, 0, 0, 0.88);
   --nutui-segmented-active-background: white;
-  --nutui-form-item-label-width: auto;
+  --nutui-form-item-label-width: 10%;
 }
 
 .ellipsis {
@@ -35,7 +35,7 @@ page {
   .song-info {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 16px;
     min-width: 0;
 
     .song-label {
@@ -74,5 +74,27 @@ page {
 .nut-avatar-square {
   & > .nut-avatar-img {
     border-radius: 8px;
+  }
+}
+
+.cell-extra-with-text {
+  // 需要让右侧内容自适应宽度, 所以左侧不允许伸缩
+  & .nut-cell-left {
+    flex: none;
+  }
+  // 里面一般组合是一个文字加一个图标
+  .cell-extra-with-text-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+}
+
+// 修复在 Cell.Group 下里的 Cell 使用 Swipe 出现的高度问题
+.nut-swipe-right {
+  height: 100%;
+  // 让按钮高度撑满
+  > .nut-button {
+    height: 100% !important;
   }
 }

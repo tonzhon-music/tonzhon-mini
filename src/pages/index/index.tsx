@@ -1,110 +1,23 @@
-import { View, Text, ScrollView } from "@tarojs/components";
+import { View, Text, ScrollView, Image } from "@tarojs/components";
 import { useEffect, useState } from "react";
 import Player from "@/components/player";
-import { Cell, pxTransform, SearchBar, Tabs, type TabPaneProps } from "@nutui/nutui-react-taro";
-import { Artist, getHotSongs, getNewSongs, getRecommendPlaylists, type Playlist, type Song } from "@/api";
+import { getHotSongs, getNewSongs, type Song } from "@/api";
 import Taro from "@tarojs/taro";
-import { usePlayerHeight } from "@/hooks";
-import { ArrowRight } from "@nutui/icons-react-taro";
+import { ArrowRight, Feedback, Internation, Search, User } from "@nutui/icons-react-taro";
 import SongList from "@/components/song-list";
-import ArtistList from "@/components/artist-list";
-import PlaylistGroup from "@/components/playlist-group";
 import { getCloud } from "@/cloud";
+import { Cell, Divider } from "@nutui/nutui-react-taro";
+import { HEADER_IMAGE_URL } from "@/constants";
 
 import Wiki from "./Wiki";
 import "./index.scss";
 
-type TabKey = "recommend" | "artists" | "playlists";
-
 export default function Index() {
-  const [tab, setTab] = useState<TabKey>("recommend");
   const [hotSongs, setHotSongs] = useState<Song[]>([]);
   const [loadingHostSongs, setLoadingHotSongs] = useState(false);
   const [newSongs, setNewSongs] = useState<Song[]>([]);
   const [loadingNewSongs, setLoadingNewSongs] = useState(false);
-  const playerHeight = usePlayerHeight();
-  const [recommendPlaylists, setRecommendPlaylists] = useState<Playlist[]>([]);
-  const [popularArtists, setPopularArtists] = useState<Artist[]>([]);
   const [isReviewed, setIsReviewed] = useState<boolean>(false);
-
-  const tabs: Array<Partial<TabPaneProps & { children: React.ReactNode }>> = [
-    {
-      title: "推荐歌曲",
-      value: "recommend",
-      children: (
-        <>
-          <SongList
-            title="热门歌曲"
-            songs={hotSongs}
-            // 首页仅展示 5 首歌曲
-            showCount={5}
-            extra={
-              <View
-                className="song-list-title-extra"
-                onClick={() => {
-                  Taro.navigateTo({
-                    url: "/pages/recommend/index?type=hot",
-                    success: (res) => {
-                      res.eventChannel.emit("hotSongs", {
-                        title: "热门歌曲",
-                        songs: hotSongs,
-                      });
-                    },
-                  });
-                }}
-              >
-                <Text>更多</Text>
-                <ArrowRight size={16} color="#505259" />
-              </View>
-            }
-          />
-          <SongList
-            title="最新歌曲"
-            songs={newSongs}
-            // 首页仅展示 5 首歌曲
-            showCount={5}
-            extra={
-              <View
-                className="song-list-title-extra"
-                onClick={() => {
-                  Taro.navigateTo({
-                    url: "/pages/recommend/index?type=new",
-                    success: (res) => {
-                      res.eventChannel.emit("hotSongs", {
-                        title: "最新歌曲",
-                        songs: newSongs,
-                      });
-                    },
-                  });
-                }}
-              >
-                <Text>更多</Text>
-                <ArrowRight size={16} color="#505259" />
-              </View>
-            }
-          />
-        </>
-      ),
-    },
-    {
-      title: "推荐歌手",
-      value: "artists",
-      children: (
-        <View style={{ marginTop: pxTransform(8) }}>
-          <ArtistList singers={popularArtists} />
-        </View>
-      ),
-    },
-    {
-      title: "热门歌单",
-      value: "playlists",
-      children: (
-        <Cell style={{ marginTop: pxTransform(8) }}>
-          <PlaylistGroup playlists={recommendPlaylists} />
-        </Cell>
-      ),
-    },
-  ];
 
   useEffect(() => {
     setLoadingHotSongs(true);
@@ -153,31 +66,6 @@ export default function Index() {
   }, []);
 
   useEffect(() => {
-    if (tab === "playlists" && !recommendPlaylists.length) {
-      // 当在 playlists 标签下且推荐歌单为空时才请求
-      Taro.showLoading({
-        title: "加载推荐歌单中",
-      });
-      getRecommendPlaylists()
-        .then((res) => {
-          if (res.data.success) {
-            setRecommendPlaylists(res.data.playlists);
-          } else {
-            throw new Error();
-          }
-        })
-        .catch(() => {
-          Taro.showToast({
-            title: "获取推荐歌单失败",
-          });
-        })
-        .finally(() => {
-          Taro.hideLoading();
-        });
-    }
-  }, [tab, recommendPlaylists]);
-
-  useEffect(() => {
     if (loadingHostSongs || loadingNewSongs) {
       Taro.showLoading({
         title: "加载数据中",
@@ -191,23 +79,9 @@ export default function Index() {
     getCloud().then((cloud) => {
       cloud
         .database()
-        .collection("tz-popular-artists")
-        .get()
-        .then((res) => {
-          console.log("popular artists", res);
-          setPopularArtists(res.data as Artist[]);
-        });
-    });
-  }, []);
-
-  useEffect(() => {
-    getCloud().then((cloud) => {
-      cloud
-        .database()
         .collection("tz-settings")
         .get()
         .then((res) => {
-          console.log("res", res);
           const data = res.data[0] as { isReviewed: boolean } | undefined;
           setIsReviewed(data?.isReviewed ?? false);
         });
@@ -220,28 +94,115 @@ export default function Index() {
 
   return (
     <ScrollView scrollY>
-      <SearchBar
-        shape="round"
-        placeholder="安全搜索"
-        onInputClick={() => {
-          Taro.navigateTo({
-            url: "/pages/search/index",
-          });
-        }}
-      />
-      <Tabs
-        value={tab}
-        onChange={(value) => {
-          setTab(value as TabKey);
-        }}
-      >
-        {tabs.map((t) => (
-          <Tabs.TabPane title={t.title} value={t.value} key={t.value} />
-        ))}
-      </Tabs>
-
-      <View className="index-container" style={{ marginBottom: playerHeight }}>
-        {tabs.find((t) => t.value === tab)?.children}
+      <View className="index-container">
+        <Cell className="header">
+          <View className="logo">
+            <Image src={HEADER_IMAGE_URL} mode="widthFix" />
+          </View>
+          <Divider />
+          <View className="navs">
+            <View
+              className="nav"
+              onClick={() => {
+                Taro.navigateTo({
+                  url: "/pages/search/index",
+                });
+              }}
+            >
+              <Search color="#ffbf00" size="24" />
+              <Text>搜索</Text>
+            </View>
+            <View
+              className="nav"
+              onClick={() => {
+                Taro.navigateTo({
+                  url: "/pages/artists/index",
+                });
+              }}
+            >
+              <User color="#ffbf00" size="24" />
+              <Text>歌手</Text>
+            </View>
+            <View
+              className="nav"
+              onClick={() => {
+                Taro.navigateTo({
+                  url: "/pages/playlists/index",
+                });
+              }}
+            >
+              <Feedback color="#ffbf00" size="24" />
+              <Text>歌单</Text>
+            </View>
+            <View
+              className="nav"
+              onClick={() => {
+                Taro.setClipboardData({
+                  data: "https://universe.tonzhon.whamon.com/pedia/top-10-musical-instruments-of-ancient-china/",
+                  success: () => {
+                    Taro.showToast({
+                      title: "铜钟百科地址已复制, 请前往浏览器粘贴访问",
+                      icon: "none",
+                    });
+                  },
+                });
+              }}
+            >
+              <Internation color="#ffbf00" size="24" />
+              <Text>百科</Text>
+            </View>
+          </View>
+        </Cell>
+        <SongList
+          title="热门歌曲"
+          songs={hotSongs}
+          // 首页仅展示 5 首歌曲
+          showCount={3}
+          extra={
+            <View
+              className="song-list-title-extra"
+              onClick={() => {
+                Taro.navigateTo({
+                  url: "/pages/recommend/index?type=hot",
+                  success: (res) => {
+                    res.eventChannel.emit("hotSongs", {
+                      title: "热门歌曲",
+                      songs: hotSongs,
+                    });
+                  },
+                });
+              }}
+            >
+              <Text>更多</Text>
+              <ArrowRight size={16} color="#505259" />
+            </View>
+          }
+        />
+        <SongList
+          title="最新歌曲"
+          songs={newSongs}
+          // 首页仅展示 5 首歌曲
+          showCount={3}
+          extra={
+            <View
+              className="song-list-title-extra"
+              onClick={() => {
+                Taro.navigateTo({
+                  url: "/pages/recommend/index?type=new",
+                  success: (res) => {
+                    res.eventChannel.emit("hotSongs", {
+                      title: "最新歌曲",
+                      songs: newSongs,
+                    });
+                  },
+                });
+              }}
+            >
+              <Text>更多</Text>
+              <ArrowRight size={16} color="#505259" />
+            </View>
+          }
+        />
       </View>
 
       <Player />

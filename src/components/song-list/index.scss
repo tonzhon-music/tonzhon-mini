@@ -22,3 +22,18 @@
     gap: 4px;
   }
 }
+
+.song-list-wrapper {
+  .nut-cell-divider {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    box-sizing: border-box;
+  }
+}
+
+.song-list-actions {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}

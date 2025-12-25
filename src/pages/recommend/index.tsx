@@ -4,6 +4,7 @@ import Taro, { usePullDownRefresh, useRouter } from "@tarojs/taro";
 import { type Song, getHotSongs, getNewSongs } from "@/api";
 import SongList from "@/components/song-list";
 import Player from "@/components/player";
+import { SafeArea } from "@nutui/nutui-react-taro";
 
 import "./index.scss";
 
@@ -67,6 +68,8 @@ export default function Recommend() {
       <View className="recommend-container">
         <SongList title={recommendTitle} songs={recommendSongs} />
       </View>
+
+      <SafeArea position="bottom" />
 
       <Player />
     </ScrollView>

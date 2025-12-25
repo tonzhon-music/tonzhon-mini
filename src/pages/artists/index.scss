@@ -1,0 +1,23 @@
+.artists-container {
+  padding: 16px;
+  padding-bottom: 135px;
+
+  .category-filter-wrapper {
+    margin-top: 16px;
+    margin-bottom: 32px;
+  }
+  .category-filter {
+    display: flex;
+    box-sizing: border-box;
+    gap: 20px;
+  }
+
+  .category-btn {
+    border-radius: 24px;
+  }
+
+  .white-btn {
+    background-color: white;
+    border-color: white;
+  }
+}

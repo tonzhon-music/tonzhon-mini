@@ -1,7 +1,7 @@
 import { ScrollView, Text, View } from "@tarojs/components";
 import Taro, { useRouter } from "@tarojs/taro";
 import { type Artist, getSongsOfArtist, type Song } from "@/api";
-import { Avatar } from "@nutui/nutui-react-taro";
+import { Avatar, SafeArea } from "@nutui/nutui-react-taro";
 import SongList from "@/components/song-list";
 import { useEffect, useState } from "react";
 import Player from "@/components/player";
@@ -49,6 +49,8 @@ export default function Artist() {
 
         <SongList songs={songs} title="歌曲" />
       </View>
+
+      <SafeArea position="bottom" />
 
       <Player />
     </ScrollView>

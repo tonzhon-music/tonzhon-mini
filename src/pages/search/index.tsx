@@ -1,4 +1,4 @@
-import { pxTransform, SearchBar, Tag } from "@nutui/nutui-react-taro";
+import { Menu, pxTransform, SearchBar, Tag } from "@nutui/nutui-react-taro";
 import { Text, View } from "@tarojs/components";
 import Taro from "@tarojs/taro";
 import { Articles, Del, Notice, User } from "@nutui/icons-react-taro";
@@ -46,13 +46,13 @@ export default function Search() {
   }, [getSearchHistory]);
 
   return (
-    <View>
+    <View className="search-container">
       <SearchBar
         value={searchText}
         onChange={(value) => {
           setSearchText(value.trim());
         }}
-        shape="round"
+        // shape="round"
         placeholder="安全搜索"
         autoFocus
         clearable
@@ -64,22 +64,6 @@ export default function Search() {
           setSearchHistoryByItem(value.trim());
         }}
       />
-
-      {/* TODO: 快捷搜索跳转链接暂时隐藏 */}
-      {/* <View className="search-recommendations">
-        <View className="search-recommendation-item">
-          <User size={15} />
-          <Text>歌手</Text>
-        </View>
-        <View className="search-recommendation-item">
-          <Articles size={15} />
-          <Text>歌单</Text>
-        </View>
-        <View className="search-recommendation-item">
-          <Notice size={15} />
-          <Text>纯音乐</Text>
-        </View>
-      </View> */}
 
       {searchHistory.length ? (
         <View className="search-history-container">
@@ -95,7 +79,7 @@ export default function Search() {
                   confirmColor: "#dc8f03",
                   success: (res) => {
                     if (res.confirm) {
-                      Taro.removeStorage({ key: SEARCH_HISTORY_STORAGE_KEY }).then(() => {
+                      Taro.removeStorage({ key: SEARCH_HISTORY_STORAGE_KEY }).finally(() => {
                         // 不管删除成功与否都刷新搜索历史
                         getSearchHistory();
                       });

@@ -1,5 +1,5 @@
 export default defineAppConfig({
-  pages: ["pages/index/index"],
+  pages: ["pages/index/index", "pages/profile/index"],
   subPackages: [
     {
       root: "pages/search",
@@ -14,7 +14,19 @@ export default defineAppConfig({
       pages: ["index"],
     },
     {
+      root: "pages/artists",
+      pages: ["index"],
+    },
+    {
       root: "pages/artist",
+      pages: ["index"],
+    },
+    {
+      root: "pages/my-playlists",
+      pages: ["index"],
+    },
+    {
+      root: "pages/playlists",
       pages: ["index"],
     },
     {
@@ -23,6 +35,10 @@ export default defineAppConfig({
     },
     {
       root: "pages/player-full",
+      pages: ["index"],
+    },
+    {
+      root: "pages/favorite-songs",
       pages: ["index"],
     },
   ],
@@ -34,4 +50,22 @@ export default defineAppConfig({
   },
   // 申明需要后台运行的能力
   requiredBackgroundModes: ["audio"],
+  tabBar: {
+    selectedColor: "#dc8f03",
+    color: "#000000",
+    list: [
+      {
+        pagePath: "pages/index/index",
+        text: "首页",
+        iconPath: "assets/img/home.png",
+        selectedIconPath: "assets/img/home-selected.png",
+      },
+      {
+        pagePath: "pages/profile/index",
+        text: "我的",
+        iconPath: "assets/img/user.png",
+        selectedIconPath: "assets/img/user-selected.png",
+      },
+    ],
+  },
 });

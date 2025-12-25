@@ -1,3 +1,26 @@
 .index-container {
   padding: 16px;
+  // 需要与底部的 player 有间隔防止覆盖
+  padding-bottom: 135px;
+
+  .header {
+    display: block;
+    margin-bottom: 32px;
+  }
+  .logo {
+    display: flex;
+    justify-content: center;
+  }
+
+  .navs {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    .nav {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      align-items: center;
+    }
+  }
 }

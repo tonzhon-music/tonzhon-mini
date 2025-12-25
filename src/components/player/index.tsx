@@ -1,11 +1,11 @@
 import { Avatar, Cell, Progress, SafeArea, pxTransform } from "@nutui/nutui-react-taro";
 import { View, Text } from "@tarojs/components";
-import { Image, List, PlayStart, IconFont, PlayStop } from "@nutui/icons-react-taro";
-import { useState } from "react";
+import { Image, PlayStart, IconFont, PlayStop, HeartF, Heart, Category } from "@nutui/icons-react-taro";
+import { useMemo, useState } from "react";
 import PlayerQueuePopup from "@/components/player-queue-popup";
 import { usePlayerStore, backgroundAudioManager } from "@/store";
-import Taro from "@tarojs/taro";
-import { usePlayer } from "@/hooks";
+import Taro, { useRouter } from "@tarojs/taro";
+import { useAuth, useFavorite, usePlayer } from "@/hooks";
 import { formatSongDurationToPercent } from "@/utils";
 
 import "./index.scss";
@@ -16,6 +16,13 @@ export default function Player() {
   const currentSong = usePlayerStore((state) => state.currentSong);
   const playbackProgress = usePlayerStore((state) => state.playbackProgress);
   const { playNextSong, playPreviousSong } = usePlayer();
+  const { checkLogin } = useAuth();
+  const { checkSongFavorite, favoriteSong, unFavoriteSong } = useFavorite();
+  const { path } = useRouter();
+  // 当前页面是否包含在 tabbar 中
+  const isInTabbarPage = useMemo(() => {
+    return ["/pages/index/index", "/pages/profile/index"].includes(path);
+  }, [path]);
 
   return (
     <View className="player">
@@ -52,11 +59,50 @@ export default function Player() {
           </View>
         </View>
         <View className="song-actions">
+          {checkSongFavorite(currentSong) ? (
+            <HeartF
+              size={20}
+              color="#ff4d4f"
+              style={{ marginRight: pxTransform(4) }}
+              onClick={(e) => {
+                e.stopPropagation();
+                checkLogin().then(() => {
+                  if (currentSong) {
+                    unFavoriteSong(currentSong);
+                  } else {
+                    Taro.showToast({
+                      title: "暂无播放歌曲",
+                      icon: "none",
+                    });
+                  }
+                });
+              }}
+            />
+          ) : (
+            <Heart
+              size={20}
+              style={{ marginRight: pxTransform(8) }}
+              onClick={(e) => {
+                e.stopPropagation();
+                checkLogin().then(() => {
+                  if (currentSong) {
+                    favoriteSong(currentSong);
+                  } else {
+                    Taro.showToast({
+                      title: "暂无播放歌曲",
+                      icon: "none",
+                    });
+                  }
+                });
+              }}
+            />
+          )}
+
           <IconFont
             fontClassName="iconfont"
             classPrefix="icon"
             name="shangyishoushangyige"
-            size={24}
+            size={22}
             style={{ marginTop: pxTransform(4) }}
             onClick={() => {
               if (currentSong) {
@@ -71,7 +117,7 @@ export default function Player() {
           />
           {isPlaying ? (
             <PlayStop
-              size={32}
+              size={28}
               onClick={() => {
                 if (currentSong) {
                   backgroundAudioManager.pause();
@@ -85,7 +131,7 @@ export default function Player() {
             />
           ) : (
             <PlayStart
-              size={32}
+              size={28}
               onClick={() => {
                 if (currentSong) {
                   backgroundAudioManager.play();
@@ -102,7 +148,7 @@ export default function Player() {
             fontClassName="iconfont"
             classPrefix="icon"
             name="xiayigexiayishou"
-            size={24}
+            size={22}
             style={{ marginTop: pxTransform(4) }}
             onClick={() => {
               if (currentSong) {
@@ -115,8 +161,8 @@ export default function Player() {
               }
             }}
           />
-          <List
-            size={28}
+          <Category
+            size={20}
             style={{ marginLeft: pxTransform(4) }}
             onClick={() => {
               setShowPlayerQueuePopup(true);
@@ -130,7 +176,8 @@ export default function Player() {
           setShowPlayerQueuePopup(false);
         }}
       />
-      <SafeArea position="bottom" className="player-safe-area" />
+      {/* tabbar 页面不需要 SafeArea */}
+      {isInTabbarPage ? null : <SafeArea position="bottom" className="player-safe-area" />}
     </View>
   );
 }

@@ -1,18 +1,29 @@
 .playlist-group-container {
   // 修复一下 nut-col 组件的 padding 问题, 第一个元素左侧没有给 padding
+  .playlist-group-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    align-items: center;
+  }
+
   & .nut-col:first-child {
     padding-left: 8px;
   }
-  .playlist-item {
+  .playlist-grid-item {
     display: flex;
     flex-direction: column;
     gap: 12px;
+  }
 
-    .playlist-cover {
-    }
-    .playlist-name {
-      // prettier-ignore
-      // font-size: 14Px;
+  .playlist-list-cell {
+    display: flex;
+    justify-content: space-between;
+    align-items: center !important;
+    .playlist-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
     }
   }
 }

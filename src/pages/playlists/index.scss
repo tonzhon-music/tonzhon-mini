@@ -1,0 +1,16 @@
+.playlists-container {
+  padding: 16px;
+  padding-bottom: 135px;
+
+  .pagination {
+    display: flex;
+    justify-content: center;
+    margin: 16px 0;
+  }
+
+  .total-text {
+    // prettier-ignore
+    font-size: 14Px;
+    color: #505259;
+  }
+}

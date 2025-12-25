@@ -1,25 +1,28 @@
 import { Avatar, pxTransform, SafeArea } from "@nutui/nutui-react-taro";
 import { View, Text, Image, Slider, Button } from "@tarojs/components";
-import { usePlayerStore, backgroundAudioManager } from "@/store";
+import { usePlayerStore, backgroundAudioManager, useAuthStore } from "@/store";
 import {
+  Articles,
+  Category,
   Copy,
+  Heart,
+  HeartF,
   IconFont,
   ImageError,
   Link,
-  List,
+  More,
   PlayStart,
   PlayStop,
   Refresh,
   Reload,
   Share,
 } from "@nutui/icons-react-taro";
-import { usePlayer } from "@/hooks";
-import Taro from "@tarojs/taro";
+import { useAuth, useFavorite, usePlayer } from "@/hooks";
 import { useState } from "react";
 import PlayerQueuePopup from "@/components/player-queue-popup";
-import { copySongInfoToClipboard, formatSongDuration, formatSongDurationToPercent } from "@/utils";
-import { getSongSrc } from "@/api";
+import { downloadAndShareSong, formatSongDuration, formatSongDurationToPercent } from "@/utils";
 import PlaybackRatePopup from "@/components/playback-rate-popup";
+import SongActionsPopup from "@/components/song-actions-popup";
 
 import "./index.scss";
 
@@ -32,6 +35,10 @@ export default function PlayerFull() {
   const [showPlayerQueuePopup, setShowPlayerQueuePopup] = useState(false);
   const [showPlaybackRatePopup, setShowPlaybackRatePopup] = useState(false);
   const playbackRate = usePlayerStore((state) => state.playbackRate);
+  const { checkSongFavorite, favoriteSong, unFavoriteSong } = useFavorite();
+  const { checkLogin } = useAuth();
+  const [showSongActionsPopup, setShowSongActionsPopup] = useState(false);
+  const openPlaylistPickerPopup = useAuthStore((state) => state.openPlaylistPickerPopup);
 
   return (
     <View className="player-full-container">
@@ -53,39 +60,51 @@ export default function PlayerFull() {
           >
             {playbackRate.toFixed(1)}X
           </Text>
-          <Copy
+          <Articles
             size={20}
             color="#505259"
             onClick={() => {
-              copySongInfoToClipboard(currentSong);
+              checkLogin().then(() => {
+                openPlaylistPickerPopup();
+              });
             }}
           />
-          <Link
-            size={20}
-            color="#505259"
-            onClick={() => {
-              if (currentSong) {
-                getSongSrc(currentSong.newId).then((res) => {
-                  if (res.data.success) {
-                    Taro.setClipboardData({
-                      data: res.data.data,
-                      success: () => {
-                        Taro.showToast({
-                          title: "歌曲地址已复制",
-                          icon: "success",
-                        });
-                      },
-                    });
-                  }
+          {checkSongFavorite(currentSong) ? (
+            <HeartF
+              size={20}
+              color="#ff4d4f"
+              onClick={() => {
+                checkLogin().then(() => {
+                  unFavoriteSong(currentSong);
                 });
-              }
+              }}
+            />
+          ) : (
+            <Heart
+              size={20}
+              color="#505259"
+              onClick={() => {
+                checkLogin().then(() => {
+                  favoriteSong(currentSong);
+                });
+              }}
+            />
+          )}
+          <Share
+            size={20}
+            color="#505259"
+            onClick={() => {
+              downloadAndShareSong(currentSong);
             }}
           />
-          <View className="player-full-share">
-            <Share size={20} color="#505259" />
-            {/* 小程序只能通过按钮触发分享, 这里放一个透明度为 0 的 */}
-            <Button openType="share" className="player-full-share-btn" />
-          </View>
+          <More
+            size={20}
+            color="#505259"
+            style={{ transform: "rotate(90deg)" }}
+            onClick={() => {
+              setShowSongActionsPopup(true);
+            }}
+          />
         </View>
         <Slider
           disabled={!currentSong || !backgroundAudioManager.duration}
@@ -160,7 +179,7 @@ export default function PlayerFull() {
               playNextSong();
             }}
           />
-          <List
+          <Category
             size={24}
             style={{ marginLeft: pxTransform(4) }}
             onClick={() => {
@@ -182,6 +201,14 @@ export default function PlayerFull() {
         visible={showPlaybackRatePopup}
         onClose={() => {
           setShowPlaybackRatePopup(false);
+        }}
+      />
+
+      <SongActionsPopup
+        song={currentSong}
+        visible={showSongActionsPopup}
+        onClose={() => {
+          setShowSongActionsPopup(false);
         }}
       />
     </View>

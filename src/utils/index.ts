@@ -1,4 +1,4 @@
-import { type Song } from "@/api";
+import { getSongSrc, type Song } from "@/api";
 import Taro from "@tarojs/taro";
 
 /**
@@ -91,7 +91,7 @@ export function copySongInfoToClipboard(song?: Song) {
   const info = `歌曲名: ${song?.name}, 艺人: ${song?.artists?.map((a) => a.name).join(" / ")}, 专辑名: ${
     song?.album.name
   }`;
-  Taro.setClipboardData({
+  return Taro.setClipboardData({
     data: info,
     success: () => {
       Taro.showToast({
@@ -100,4 +100,71 @@ export function copySongInfoToClipboard(song?: Song) {
       });
     },
   });
+}
+
+export function copySongLinkToClipboard(song?: Song) {
+  if (song) {
+    return getSongSrc(song.newId).then((res) => {
+      if (res.data.success) {
+        Taro.setClipboardData({
+          data: res.data.data,
+          success: () => {
+            Taro.showToast({
+              title: "歌曲链接已复制",
+              icon: "success",
+            });
+          },
+        });
+      }
+    });
+  }
+}
+
+// 某个音乐文件获取他的后缀名, 默认为 .mp3
+function getSongFileExt(url: string): string | null {
+  const match = url.match(/\.([^.\/?#]+)(?:[?#]|$)/);
+  return match ? match[1] : "mp3";
+}
+
+// 下载并且通过微信分享给其他人保存, 该函数需要在真机上测试
+export function downloadAndShareSong(song?: Song) {
+  if (song) {
+    Taro.showLoading({
+      title: "下载中...",
+    });
+    return getSongSrc(song.newId)
+      .then((res) => {
+        if (res.data.success) {
+          const url = res.data.data;
+          Taro.downloadFile({
+            url,
+          })
+            .then((r) => {
+              const ext = getSongFileExt(url);
+              Taro.shareFileMessage({
+                filePath: r.tempFilePath,
+                fileName: `${song.name}.${ext}`,
+              }).catch(console.error);
+            })
+            .catch(() => {
+              Taro.showToast({
+                title: "分享失败",
+                icon: "error",
+              });
+            })
+            .finally(() => {
+              Taro.hideLoading();
+            });
+        }
+      })
+      .catch(() => {
+        Taro.showToast({
+          title: "分享失败",
+          icon: "error",
+        });
+      })
+      .finally(() => {
+        Taro.hideLoading();
+      });
+  }
 }
