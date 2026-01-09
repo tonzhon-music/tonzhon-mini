@@ -1,0 +1,23 @@
+.settings-container {
+  padding: 16px;
+  padding-bottom: 135px;
+}
+
+.about-popup-content {
+  padding: 20px;
+
+  .content-title {
+    // prettier-ignore
+    font-size: 18Px;
+    font-weight: bold;
+    margin-bottom: 12px;
+    display: block;
+  }
+  .content-body {
+    // prettier-ignore
+    font-size: 14Px;
+    margin-bottom: 12px;
+    display: block;
+    line-height: 1.6;
+  }
+}

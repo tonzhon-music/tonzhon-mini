@@ -24,3 +24,13 @@ npm run dev:weapp
 # 打包
 npm run build:weapp
 ```
+
+更多参考 [CONTRIBUTING.md](./CONTRIBUTING.md)
+
+## TODO
+
+[TODO.md](./TODO.md)
+
+## 更新日志
+
+[CHANGELOG.md](./CHANGELOG.md)

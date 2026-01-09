@@ -41,6 +41,10 @@ export default defineAppConfig({
       root: "pages/favorite-songs",
       pages: ["index"],
     },
+    {
+      root: "pages/settings",
+      pages: ["index"],
+    },
   ],
   window: {
     backgroundTextStyle: "light",

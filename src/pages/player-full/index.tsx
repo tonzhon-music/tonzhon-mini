@@ -1,6 +1,12 @@
-import { Avatar, pxTransform, SafeArea } from "@nutui/nutui-react-taro";
-import { View, Text, Image, Slider, Button } from "@tarojs/components";
-import { usePlayerStore, backgroundAudioManager, useAuthStore } from "@/store";
+import { Avatar, Badge, pxTransform, SafeArea } from "@nutui/nutui-react-taro";
+import { View, Text } from "@tarojs/components";
+import {
+  usePlayerStore,
+  backgroundAudioManager,
+  useAuthStore,
+  useSettingsStore,
+  playBackgroundAudioManager,
+} from "@/store";
 import {
   Articles,
   Category,
@@ -20,46 +26,57 @@ import {
 import { useAuth, useFavorite, usePlayer } from "@/hooks";
 import { useState } from "react";
 import PlayerQueuePopup from "@/components/player-queue-popup";
-import { downloadAndShareSong, formatSongDuration, formatSongDurationToPercent } from "@/utils";
-import PlaybackRatePopup from "@/components/playback-rate-popup";
+import { downloadAndShareSong } from "@/utils";
 import SongActionsPopup from "@/components/song-actions-popup";
+import Taro from "@tarojs/taro";
+
+import Lyrics from "./Lyrics";
+import SeekBar from "./SeekBar";
 
 import "./index.scss";
 
 export default function PlayerFull() {
   const currentSong = usePlayerStore((state) => state.currentSong);
-  const playbackProgress = usePlayerStore((state) => state.playbackProgress);
   const playbackOrder = usePlayerStore((state) => state.playbackOrder);
   const { playNextSong, playPreviousSong, togglePlaybackOrder } = usePlayer();
   const isPlaying = usePlayerStore((state) => state.isPlaying);
   const [showPlayerQueuePopup, setShowPlayerQueuePopup] = useState(false);
-  const [showPlaybackRatePopup, setShowPlaybackRatePopup] = useState(false);
-  const playbackRate = usePlayerStore((state) => state.playbackRate);
   const { checkSongFavorite, favoriteSong, unFavoriteSong } = useFavorite();
   const { checkLogin } = useAuth();
   const [showSongActionsPopup, setShowSongActionsPopup] = useState(false);
   const openPlaylistPickerPopup = useAuthStore((state) => state.openPlaylistPickerPopup);
+  const showLyrics = useSettingsStore((state) => state.showLyrics);
+  const toggleShowLyrics = useSettingsStore((state) => state.toggleShowLyrics);
 
   return (
     <View className="player-full-container">
       <View className="player-full-info">
-        {currentSong?.cover ? (
-          <Image src={currentSong?.cover ?? ""} className="player-full-cover" mode="widthFix" />
-        ) : (
-          <Avatar icon={<ImageError />} className="player-full-cover" size="200" shape="square" />
-        )}
+        <Avatar
+          src={currentSong?.cover ? currentSong.cover : undefined}
+          icon={currentSong?.cover ? undefined : <ImageError />}
+          className="player-full-cover"
+          size="200"
+          shape="square"
+        />
         <Text className="player-full-title">{currentSong?.name ?? "暂无歌曲"}</Text>
         <Text className="player-full-artist">{currentSong?.artists?.map((a) => a.name).join(" / ") ?? "未知歌手"}</Text>
+        {showLyrics ? <Lyrics /> : null}
       </View>
       <View className="player-full-controls">
         <View className="player-full-actions">
-          <Text
-            onClick={() => {
-              setShowPlaybackRatePopup(true);
-            }}
-          >
-            {playbackRate.toFixed(1)}X
-          </Text>
+          <Badge value={showLyrics ? "开启" : "关闭"} disabled={!showLyrics}>
+            <Text
+              onClick={() => {
+                Taro.showToast({
+                  title: showLyrics ? "已关闭歌词显示" : "已开启歌词显示",
+                  icon: "none",
+                });
+                toggleShowLyrics();
+              }}
+            >
+              歌词
+            </Text>
+          </Badge>
           <Articles
             size={20}
             color="#505259"
@@ -106,29 +123,9 @@ export default function PlayerFull() {
             }}
           />
         </View>
-        <Slider
-          disabled={!currentSong || !backgroundAudioManager.duration}
-          className="player-full-slider"
-          activeColor="black"
-          blockColor="black"
-          blockSize={12}
-          value={formatSongDurationToPercent(playbackProgress, backgroundAudioManager.duration)}
-          step={0.1}
-          onChange={(e) => {
-            if (currentSong && backgroundAudioManager.duration) {
-              const value = e.detail.value || 0;
-              const newTime = (value / 100) * backgroundAudioManager.duration;
-              backgroundAudioManager.seek(newTime);
-            }
-          }}
-          onChanging={(e) => {
-            // TODO: 滑动过程中更加丝滑
-          }}
-        />
-        <View className="player-full-time-info">
-          <Text>{currentSong ? formatSongDuration(playbackProgress) : "00:00"}</Text>
-          <Text>{currentSong ? formatSongDuration(backgroundAudioManager.duration) : "00:00"}</Text>
-        </View>
+
+        <SeekBar />
+
         <View className="player-full-buttons">
           <View
             style={{ marginTop: pxTransform(4) }}
@@ -165,7 +162,7 @@ export default function PlayerFull() {
               size={48}
               onClick={() => {
                 if (currentSong) {
-                  backgroundAudioManager.play();
+                  playBackgroundAudioManager();
                 }
               }}
             />
@@ -194,13 +191,6 @@ export default function PlayerFull() {
         visible={showPlayerQueuePopup}
         onClose={() => {
           setShowPlayerQueuePopup(false);
-        }}
-      />
-
-      <PlaybackRatePopup
-        visible={showPlaybackRatePopup}
-        onClose={() => {
-          setShowPlaybackRatePopup(false);
         }}
       />
 

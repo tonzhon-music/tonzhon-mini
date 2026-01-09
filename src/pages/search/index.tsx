@@ -1,9 +1,11 @@
-import { Menu, pxTransform, SearchBar, Tag } from "@nutui/nutui-react-taro";
+import { Menu, pxTransform, Tag } from "@nutui/nutui-react-taro";
 import { Text, View } from "@tarojs/components";
 import Taro from "@tarojs/taro";
-import { Articles, Del, Notice, User } from "@nutui/icons-react-taro";
+import { Del } from "@nutui/icons-react-taro";
 import { useCallback, useEffect, useState } from "react";
 import Player from "@/components/player";
+import { Search as VSearch } from "@taroify/core";
+import "@taroify/core/search/style";
 
 import "./index.scss";
 
@@ -41,27 +43,43 @@ export default function Search() {
     [getSearchHistory, searchHistory]
   );
 
+  // 跳转到搜索结果页并存储搜索历史
+  const saveHistoryAndNavigate = useCallback(
+    (value: string) => {
+      Taro.navigateTo({
+        url: `/pages/search-result/index?keyword=${value.trim()}`,
+      });
+      setSearchHistoryByItem(value.trim());
+    },
+    [setSearchHistoryByItem]
+  );
+
   useEffect(() => {
     getSearchHistory();
   }, [getSearchHistory]);
 
   return (
     <View className="search-container">
-      <SearchBar
+      <VSearch
         value={searchText}
-        onChange={(value) => {
+        onChange={(e) => {
+          const value = e.detail.value;
           setSearchText(value.trim());
         }}
-        // shape="round"
         placeholder="安全搜索"
         autoFocus
-        clearable
-        onSearch={(value) => {
-          // 跳转到搜索结果页并存储搜索历史
-          Taro.navigateTo({
-            url: `/pages/search-result/index?keyword=${value.trim()}`,
-          });
-          setSearchHistoryByItem(value.trim());
+        action={
+          <Text
+            onClick={() => {
+              saveHistoryAndNavigate(searchText);
+            }}
+          >
+            搜索
+          </Text>
+        }
+        onSearch={(e) => {
+          const value = e.detail.value.trim();
+          saveHistoryAndNavigate(value);
         }}
       />
 

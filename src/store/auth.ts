@@ -1,10 +1,11 @@
 import { create } from "zustand";
-import { type User, type Song } from "../api";
+import { type User, type Song, type AccountInfo } from "../api";
 
 type AuthStore = {
   login: boolean;
   showLoginPopup: boolean;
   user?: User;
+  accountInfo?: AccountInfo;
   // 喜欢的歌曲
   favoriteSongs: Song[];
   // 展示创建歌单的弹框
@@ -19,6 +20,7 @@ type AuthStore = {
   closeLoginPopup: () => void;
   setLogin: (login: boolean) => void;
   setUser: (user?: User) => void;
+  setAccountInfo: (info?: AccountInfo) => void;
   // 打开创建歌单弹框
   openCreatePlaylistPopup: (song?: Song) => void;
   closeCreatePlaylistPopup: () => void;
@@ -44,6 +46,7 @@ export const useAuthStore = create<AuthStore>()((set) => ({
   closeLoginPopup: () => set({ showLoginPopup: false }),
   setLogin: (login) => set({ login }),
   setUser: (user) => set({ user }),
+  setAccountInfo: (accountInfo) => set({ accountInfo }),
   openCreatePlaylistPopup: (song) => set({ showCreatePlaylistPopup: true, songForCreatePlaylistPopup: song }),
   closeCreatePlaylistPopup: () =>
     set({
@@ -55,6 +58,7 @@ export const useAuthStore = create<AuthStore>()((set) => ({
     set({
       login: false,
       user: undefined,
+      accountInfo: undefined,
       favoriteSongs: [],
       songForCreatePlaylistPopup: undefined,
     }),

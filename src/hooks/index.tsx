@@ -6,6 +6,7 @@ import {
   addSongToBackgroundAudioManager,
   backgroundAudioManager,
   useAuthStore,
+  playBackgroundAudioManager,
 } from "@/store";
 import {
   addPlaylistToCollection,
@@ -145,7 +146,7 @@ export function usePlayer() {
         if (isPlaying) {
           backgroundAudioManager.pause();
         } else {
-          backgroundAudioManager.play();
+          playBackgroundAudioManager();
         }
       } else {
         // 非正在播放的歌曲, 要判断是否在播放队列中
@@ -444,9 +445,4 @@ export function usePlaylistCollection() {
     collectPlaylist,
     // TODO: 暂无取消收藏的操作
   };
-}
-
-// 我创建的歌单相关方法
-export function useMyPlaylist() {
-  return {};
 }

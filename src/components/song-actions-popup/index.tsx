@@ -1,15 +1,30 @@
 import { Song } from "@/api";
 import { ScrollView, View, Text } from "@tarojs/components";
-import { Cell, Popup, pxTransform } from "@nutui/nutui-react-taro";
-import { Articles, Copy, Del, Heart, HeartF, Hi, Link, Pin, Share, User, Videos } from "@nutui/icons-react-taro";
+import { Cell, Divider, Popup, pxTransform } from "@nutui/nutui-react-taro";
+import {
+  Articles,
+  Copy,
+  Del,
+  Heart,
+  HeartF,
+  Hi,
+  Link,
+  Pin,
+  PlayDoubleForward,
+  Share,
+  User,
+  Videos,
+} from "@nutui/icons-react-taro";
 import { useAuth, useFavorite, usePlayer } from "@/hooks";
-import { copySongInfoToClipboard, copySongLinkToClipboard, downloadAndShareSong } from "@/utils";
-import { useAuthStore } from "@/store";
+import { copySongInfoToClipboard, copySongLinkToClipboard, downloadAndShareLyric, downloadAndShareSong } from "@/utils";
+import { useAuthStore, usePlayerStore } from "@/store";
+import { useState } from "react";
 
 import PlaylistPickerPopup from "../playlist-picker-popup";
 
 import "./index.scss";
 import LoginPopup from "../login-popup";
+import PlaybackRatePopup from "../playback-rate-popup";
 
 type SongActionsPopupProps = {
   song?: Song;
@@ -26,6 +41,8 @@ export default function SongActionsPopup({ song, visible, onClose, deleteAction 
   const { addSongToQueue } = usePlayer();
   const showPlaylistPickerPopup = useAuthStore((state) => state.showPlaylistPickerPopup);
   const { openPlaylistPickerPopup, closePlaylistPickerPopup } = useAuthStore();
+  const [showPlaybackRatePopup, setShowPlaybackRatePopup] = useState(false);
+  const playbackRate = usePlayerStore((state) => state.playbackRate);
 
   return (
     <>
@@ -66,6 +83,9 @@ export default function SongActionsPopup({ song, visible, onClose, deleteAction 
                   </View>
                 }
               />
+
+              <Divider className="divider-small" />
+
               <Cell
                 clickable
                 onClick={() => {
@@ -81,6 +101,21 @@ export default function SongActionsPopup({ song, visible, onClose, deleteAction 
                   </View>
                 }
               />
+              <Cell
+                clickable
+                onClick={() => {
+                  setShowPlaybackRatePopup(true);
+                }}
+                title={
+                  <View className="song-actions-popup-title">
+                    <PlayDoubleForward />
+                    <Text>倍速: {playbackRate.toFixed(1)}X</Text>
+                  </View>
+                }
+              />
+
+              <Divider className="divider-small" />
+
               <Cell
                 clickable
                 onClick={() => {
@@ -123,10 +158,24 @@ export default function SongActionsPopup({ song, visible, onClose, deleteAction 
                 title={
                   <View className="song-actions-popup-title">
                     <Share />
-                    <Text>下载并分享到微信</Text>
+                    <Text>下载歌曲并分享到微信</Text>
                   </View>
                 }
               />
+              <Cell
+                clickable
+                onClick={() => {
+                  downloadAndShareLyric(song);
+                  onClose();
+                }}
+                title={
+                  <View className="song-actions-popup-title">
+                    <Text>词</Text>
+                    <Text>下载歌词并分享到微信</Text>
+                  </View>
+                }
+              />
+
               <Cell
                 clickable
                 onClick={() => {
@@ -181,6 +230,13 @@ export default function SongActionsPopup({ song, visible, onClose, deleteAction 
           closePlaylistPickerPopup();
         }}
         songToAdd={song}
+      />
+
+      <PlaybackRatePopup
+        visible={showPlaybackRatePopup}
+        onClose={() => {
+          setShowPlaybackRatePopup(false);
+        }}
       />
 
       <LoginPopup />

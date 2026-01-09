@@ -40,6 +40,7 @@
     "@babel/runtime": "^7.24.4",
     "@nutui/icons-react-taro": "^3.0.2-cpp.3.beta.3",
     "@nutui/nutui-react-taro": "^3.0.19-cpp.17",
+    "@taroify/core": "^0.9.0",
     "@tarojs/components": "4.1.7",
     "@tarojs/helper": "4.1.7",
     "@tarojs/plugin-framework-react": "4.1.7",

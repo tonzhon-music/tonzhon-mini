@@ -74,6 +74,10 @@ export type User = {
   songWorks: [];
 };
 
+export type AccountInfo = {
+  email: string;
+};
+
 // 获取热门歌曲
 export function getHotSongs() {
   return Taro.request<{ success: boolean; songs: Song[] | { error: string } }>({
@@ -85,6 +89,13 @@ export function getHotSongs() {
 export function getSongSrc(newId: string) {
   return Taro.request<{ success: boolean; data: string }>({
     url: `${BASE_URL_1}/song_file/${newId}`,
+  });
+}
+
+// 根据 newId 获取歌曲歌词
+export function getSongLyrics(newId: string) {
+  return Taro.request<{ success: boolean; data: string }>({
+    url: `${BASE_URL_1}/lyrics/${newId}`,
   });
 }
 
@@ -166,7 +177,7 @@ export function getUserInfo() {
 
 // 获取账户信息, 邮箱
 export function getAccountInfo() {
-  return Taro.request<{ email: string }>({
+  return Taro.request<AccountInfo>({
     url: `${BASE_URL_2}/account`,
     header: {
       cookie: Taro.getStorageSync(COOKIE_KEY),
@@ -270,5 +281,32 @@ export function getPlaylistsTotal() {
 export function getPlaylists(index: number) {
   return Taro.request<{ success: boolean; playlists: Playlist[] }>({
     url: `${BASE_URL_2}/latest_playlists_with_covers?skip=${index}`,
+  });
+}
+
+// 注册时校验用户名, status 200 表示可用, 422 表示已被占用
+export function checkUsername(payload: { username: string }) {
+  return Taro.request<string>({
+    url: `${BASE_URL_2}/username_availability_check`,
+    method: "POST",
+    data: payload,
+  });
+}
+
+// 注册时校验邮箱, status 200 表示可用, 422 表示已被占用
+export function checkEmail(payload: { email: string }) {
+  return Taro.request<string>({
+    url: `${BASE_URL_2}/email_availability_check`,
+    method: "POST",
+    data: payload,
+  });
+}
+
+// 注册接口, status 201 代表注册成功, 返回 Created
+export function signup(payload: { username: string; email: string; password: string }) {
+  return Taro.request<string>({
+    url: `${BASE_URL_2}/sign_up`,
+    method: "POST",
+    data: payload,
   });
 }

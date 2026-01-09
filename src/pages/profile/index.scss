@@ -4,18 +4,24 @@
 
   .profile-info {
     display: flex;
-    flex-direction: column;
-    gap: 16px;
-    align-items: center !important;
-    .profile-name {
-      // prettier-ignore
-      font-size: 18Px;
-      font-weight: bold;
+    gap: 32px;
+    align-items: stretch !important;
+    .profile-avatar {
     }
-    .profile-email {
+    .profile-info-text {
       display: flex;
-      gap: 8px;
-      align-items: center;
+      flex-direction: column;
+      justify-content: space-around;
+      .profile-name {
+        // prettier-ignore
+        font-size: 18Px;
+        font-weight: bold;
+      }
+      .profile-email {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
     }
   }
 
@@ -30,23 +36,4 @@
 
 .login-btn {
   margin: 32px 0;
-}
-
-.about-popup-content {
-  padding: 20px;
-
-  .content-title {
-    // prettier-ignore
-    font-size: 18Px;
-    font-weight: bold;
-    margin-bottom: 12px;
-    display: block;
-  }
-  .content-body {
-    // prettier-ignore
-    font-size: 14Px;
-    margin-bottom: 12px;
-    display: block;
-    line-height: 1.6;
-  }
 }

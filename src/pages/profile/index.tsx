@@ -7,11 +7,9 @@ import { Add, ArrowRight, Articles, Feedback, FollowAdd, Heart, Mail } from "@nu
 import Taro from "@tarojs/taro";
 import LoginPopup from "@/components/login-popup";
 import { useAuth } from "@/hooks";
-import { getAccountInfo } from "@/api";
 import CreatePlaylistPopup from "@/components/create-playlist-popup";
 import { getCloud } from "@/cloud";
 
-import AboutPopup from "./AboutPopup";
 import "./index.scss";
 import AboutWiki from "./AboutWiki";
 
@@ -23,20 +21,10 @@ export default function Profile() {
   const createdPlaylistsLength = useAuthStore((state) => state.user?.playlists?.length ?? 0);
   const collectedPlaylistsLength = useAuthStore((state) => state.user?.collectedPlaylists?.length ?? 0);
   const openLoginPopup = useAuthStore((state) => state.openLoginPopup);
-  const [showAboutPopup, setShowAboutPopup] = useState(false);
   const { confirmSignout, checkLogin } = useAuth();
-  const [email, setEmail] = useState<string>("");
+  const accountInfo = useAuthStore((state) => state.accountInfo);
   const openCreatePlaylistPopup = useAuthStore((state) => state.openCreatePlaylistPopup);
   const [isReviewed, setIsReviewed] = useState<boolean>(false);
-
-  useEffect(() => {
-    if (login) {
-      // TODO: 理论上 email 应该是写在 store 里的, 但是这里暂时仅在该页面使用
-      getAccountInfo().then((res) => {
-        setEmail(res.data.email ?? "");
-      });
-    }
-  }, [login]);
 
   useEffect(() => {
     getCloud().then((cloud) => {
@@ -69,14 +57,16 @@ export default function Profile() {
             }
           }}
         >
-          <Avatar size="large" />
-          <Text className="profile-name">{login ? user?.username : "未登录"}</Text>
-          {login && email ? (
+          <View className="profile-avatar">
+            <Avatar size="large" />
+          </View>
+          <View className="profile-info-text">
+            <Text className="profile-name">{login ? user?.username : "未登录"}</Text>
             <View className="profile-email">
               <Mail />
-              <Text>{email}</Text>
+              <Text>{accountInfo?.email ?? "***"}</Text>
             </View>
-          ) : null}
+          </View>
         </Cell>
 
         <Cell.Group title="个人" className="profile-personal">
@@ -169,26 +159,12 @@ export default function Profile() {
 
         <Cell.Group title="设置">
           <Cell
-            title="关于铜钟"
+            title="设置"
             clickable
             extra={<ArrowRight />}
             onClick={() => {
-              setShowAboutPopup(true);
-            }}
-          />
-          <Cell
-            title="网页版"
-            clickable
-            className="cell-extra-with-text"
-            extra={<ArrowRight />}
-            onClick={() => {
-              Taro.setClipboardData({
-                data: "https://tonzhon.whamon.com/",
-              }).then(() => {
-                Taro.showToast({
-                  title: "链接已复制",
-                  icon: "success",
-                });
+              Taro.navigateTo({
+                url: "/pages/settings/index",
               });
             }}
           />
@@ -209,20 +185,14 @@ export default function Profile() {
             }
           }}
         >
-          {login ? "退出登录" : "立即登录"}
+          {login ? "退出登录" : "登录/注册"}
         </Button>
-
-        <AboutPopup
-          visible={showAboutPopup}
-          onClose={() => {
-            setShowAboutPopup(false);
-          }}
-        />
-        <LoginPopup />
-        <CreatePlaylistPopup />
-
-        <Player />
       </View>
+
+      <LoginPopup />
+      <CreatePlaylistPopup />
+
+      <Player />
     </ScrollView>
   );
 }

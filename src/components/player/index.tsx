@@ -3,7 +3,7 @@ import { View, Text } from "@tarojs/components";
 import { Image, PlayStart, IconFont, PlayStop, HeartF, Heart, Category } from "@nutui/icons-react-taro";
 import { useMemo, useState } from "react";
 import PlayerQueuePopup from "@/components/player-queue-popup";
-import { usePlayerStore, backgroundAudioManager } from "@/store";
+import { usePlayerStore, backgroundAudioManager, playBackgroundAudioManager } from "@/store";
 import Taro, { useRouter } from "@tarojs/taro";
 import { useAuth, useFavorite, usePlayer } from "@/hooks";
 import { formatSongDurationToPercent } from "@/utils";
@@ -134,7 +134,7 @@ export default function Player() {
               size={28}
               onClick={() => {
                 if (currentSong) {
-                  backgroundAudioManager.play();
+                  playBackgroundAudioManager();
                 } else {
                   Taro.showToast({
                     title: "暂无播放歌曲",

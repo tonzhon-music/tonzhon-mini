@@ -1,11 +1,12 @@
 import { PropsWithChildren, useEffect } from "react";
-import { backgroundAudioManager, useAuthStore, usePlayerStore } from "@/store";
+import { backgroundAudioManager, useAuthStore, usePlayerStore, useSettingsStore } from "@/store";
 import Taro, { useLaunch } from "@tarojs/taro";
 import { useAuth, usePlayer } from "@/hooks";
 
 import "@nutui/nutui-react-taro/dist/style.css";
 import "@/assets/font/iconfont.css";
 import "./app.scss";
+import { getAccountInfo } from "./api";
 
 function App({ children }: PropsWithChildren<any>) {
   const setIsPlaying = usePlayerStore((state) => state.setIsPlaying);
@@ -13,6 +14,44 @@ function App({ children }: PropsWithChildren<any>) {
   const login = useAuthStore((state) => state.login);
   const { playNextSong, playPreviousSong } = usePlayer();
   const { refreshUserInfo, refreshFavoriteSongs } = useAuth();
+  const setAccountInfo = useAuthStore((state) => state.setAccountInfo);
+
+  useLaunch(() => {
+    console.log("App Launch");
+    // 检测版本更新并自动下载最新版本
+    const updateManager = Taro.getUpdateManager();
+
+    updateManager.onCheckForUpdate((res) => {
+      console.log("检查更新", res.hasUpdate);
+    });
+
+    updateManager.onUpdateReady(() => {
+      Taro.showModal({
+        title: "更新提示",
+        content: "新版本已经准备好，是否重启应用？",
+        success: (res) => {
+          if (res.confirm) {
+            updateManager.applyUpdate();
+          }
+        },
+      });
+    });
+
+    updateManager.onUpdateFailed(() => {
+      Taro.showToast({
+        title: "更新失败请重启",
+        icon: "error",
+        duration: 2000,
+      });
+    });
+
+    // 载入缓存的设置, 根据设置里是否缓存歌曲和播放队列来决定是否载入播放器状态
+    (useSettingsStore.persist.rehydrate() as Promise<void>).then(() => {
+      if (useSettingsStore.getState().persistSongAndQueue) {
+        usePlayerStore.persist.rehydrate();
+      }
+    });
+  });
 
   // 全局监听播放器状态变化
   useEffect(() => {
@@ -84,6 +123,15 @@ function App({ children }: PropsWithChildren<any>) {
       refreshFavoriteSongs();
     }
   }, [login, refreshFavoriteSongs]);
+
+  useEffect(() => {
+    if (login) {
+      // 若已登录获取账户信息
+      getAccountInfo().then((res) => {
+        setAccountInfo(res.data);
+      });
+    }
+  }, [login, setAccountInfo]);
 
   return children;
 }
