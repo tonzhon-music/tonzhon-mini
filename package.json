@@ -3,6 +3,10 @@
   "version": "1.0.0",
   "private": true,
   "description": "铜钟小程序",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tonzhon-music/tonzhon-mini.git"
+  },
   "templateInfo": {
     "name": "default",
     "typescript": true,
