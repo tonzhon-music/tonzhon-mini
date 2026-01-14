@@ -6,6 +6,8 @@ import { useEffect, useMemo, useState } from "react";
 import Taro, { useReachBottom } from "@tarojs/taro";
 import { getPlaylists, getPlaylistsTotal, getRecommendPlaylists, type Playlist } from "@/api";
 import { PLAYLIST_PAGE_SIZE } from "@/constants";
+import { useReviewerStore } from "@/store";
+import Instrument from "@/components/instrument";
 
 import "./index.scss";
 
@@ -19,6 +21,7 @@ export default function Playlists() {
   const [allTotal, setAllTotal] = useState<number>(0);
   const [allPlaylists, setAllPlaylists] = useState<Playlist[]>([]);
   const skipIndex = useMemo(() => (page - 1) * PLAYLIST_PAGE_SIZE, [page]);
+  const isReviewed = useReviewerStore((state) => state.isReviewed);
 
   const tabs: Array<Partial<TabPaneProps & { children: React.ReactNode }>> = [
     {
@@ -78,6 +81,15 @@ export default function Playlists() {
       }
     });
   }, [skipIndex]);
+
+  if (!isReviewed) {
+    return (
+      <Instrument
+        title="编钟"
+        description="中国编钟是古代青铜打击乐器，兴盛于周代至秦汉，由大小不同的青铜钟按音高悬挂在木架上，以木槌敲击发声，是礼乐制度的核心乐器之一，代表作是曾侯乙编钟，其音域宽广、音律严谨，体现了中国古代高超的青铜铸造和乐律科学水平，具有极高的历史、艺术和科技价值。 "
+      />
+    );
+  }
 
   return (
     <ScrollView scrollY>

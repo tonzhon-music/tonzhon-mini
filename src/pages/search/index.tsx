@@ -6,6 +6,8 @@ import { useCallback, useEffect, useState } from "react";
 import Player from "@/components/player";
 import { Search as VSearch } from "@taroify/core";
 import "@taroify/core/search/style";
+import { useReviewerStore } from "@/store";
+import Instrument from "@/components/instrument";
 
 import "./index.scss";
 
@@ -14,6 +16,7 @@ const SEARCH_HISTORY_STORAGE_KEY = "search_history";
 export default function Search() {
   const [searchText, setSearchText] = useState("");
   const [searchHistory, setSearchHistory] = useState<string[]>([]);
+  const isReviewed = useReviewerStore((state) => state.isReviewed);
 
   const getSearchHistory = useCallback(() => {
     Taro.getStorage({ key: SEARCH_HISTORY_STORAGE_KEY })
@@ -57,6 +60,18 @@ export default function Search() {
   useEffect(() => {
     getSearchHistory();
   }, [getSearchHistory]);
+
+  if (!isReviewed) {
+    Taro.setNavigationBarTitle({
+      title: "鼓",
+    });
+    return (
+      <Instrument
+        title="鼓"
+        description="中国鼓是历史悠久、种类繁多的传统打击乐器，由鼓身（木框或陶土）和蒙面（通常是牛皮）组成，功能从远古的祭祀、战争、狩猎信号，发展到后来的礼乐、戏曲、歌舞伴奏，常见有大鼓、花盆鼓、腰鼓、堂鼓等，其文化内涵深刻，象征着力量与精神，至今仍活跃在各种表演与庆典中。 "
+      />
+    );
+  }
 
   return (
     <View className="search-container">

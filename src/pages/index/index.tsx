@@ -5,9 +5,9 @@ import { getHotSongs, getNewSongs, type Song } from "@/api";
 import Taro from "@tarojs/taro";
 import { ArrowRight, Feedback, Internation, Search, User } from "@nutui/icons-react-taro";
 import SongList from "@/components/song-list";
-import { getCloud } from "@/cloud";
 import { Cell, Divider } from "@nutui/nutui-react-taro";
 import { HEADER_IMAGE_URL } from "@/constants";
+import { useReviewerStore } from "@/store";
 
 import Wiki from "./Wiki";
 import "./index.scss";
@@ -17,7 +17,7 @@ export default function Index() {
   const [loadingHostSongs, setLoadingHotSongs] = useState(false);
   const [newSongs, setNewSongs] = useState<Song[]>([]);
   const [loadingNewSongs, setLoadingNewSongs] = useState(false);
-  const [isReviewed, setIsReviewed] = useState<boolean>(false);
+  const isReviewed = useReviewerStore((state) => state.isReviewed);
 
   useEffect(() => {
     setLoadingHotSongs(true);
@@ -74,19 +74,6 @@ export default function Index() {
       Taro.hideLoading();
     }
   }, [loadingHostSongs, loadingNewSongs]);
-
-  useEffect(() => {
-    getCloud().then((cloud) => {
-      cloud
-        .database()
-        .collection("tz-settings")
-        .get()
-        .then((res) => {
-          const data = res.data[0] as { isReviewed: boolean } | undefined;
-          setIsReviewed(data?.isReviewed ?? false);
-        });
-    });
-  }, []);
 
   if (!isReviewed) {
     return <Wiki />;

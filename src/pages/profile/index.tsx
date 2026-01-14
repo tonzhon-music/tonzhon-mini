@@ -1,14 +1,12 @@
 import { ScrollView, View, Text } from "@tarojs/components";
 import Player from "@/components/player";
 import { Cell, Button, Avatar } from "@nutui/nutui-react-taro";
-import { useEffect, useState } from "react";
-import { useAuthStore } from "@/store";
+import { useAuthStore, useReviewerStore } from "@/store";
 import { Add, ArrowRight, Articles, Feedback, FollowAdd, Heart, Mail } from "@nutui/icons-react-taro";
 import Taro from "@tarojs/taro";
 import LoginPopup from "@/components/login-popup";
 import { useAuth } from "@/hooks";
 import CreatePlaylistPopup from "@/components/create-playlist-popup";
-import { getCloud } from "@/cloud";
 
 import "./index.scss";
 import AboutWiki from "./AboutWiki";
@@ -24,20 +22,7 @@ export default function Profile() {
   const { confirmSignout, checkLogin } = useAuth();
   const accountInfo = useAuthStore((state) => state.accountInfo);
   const openCreatePlaylistPopup = useAuthStore((state) => state.openCreatePlaylistPopup);
-  const [isReviewed, setIsReviewed] = useState<boolean>(false);
-
-  useEffect(() => {
-    getCloud().then((cloud) => {
-      cloud
-        .database()
-        .collection("tz-settings")
-        .get()
-        .then((res) => {
-          const data = res.data[0] as { isReviewed: boolean } | undefined;
-          setIsReviewed(data?.isReviewed ?? false);
-        });
-    });
-  }, []);
+  const isReviewed = useReviewerStore((state) => state.isReviewed);
 
   if (!isReviewed) {
     return <AboutWiki />;

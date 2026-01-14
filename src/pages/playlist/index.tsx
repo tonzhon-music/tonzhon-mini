@@ -8,7 +8,8 @@ import { getPlaylistCoverUrl, formatCount } from "@/utils";
 import { Heart, HeartF, Image, Service, Share } from "@nutui/icons-react-taro";
 import SongList from "@/components/song-list";
 import { useAuth, usePlayer, usePlaylistCollection } from "@/hooks";
-import { useAuthStore } from "@/store";
+import { useAuthStore, useReviewerStore } from "@/store";
+import Instrument from "@/components/instrument";
 
 import "./index.scss";
 
@@ -24,6 +25,7 @@ export default function Playlist() {
   const isMyPlaylist = useMemo(() => (myPlaylists ?? []).some((p) => p.id === id), [id, myPlaylists]);
   const [updateState, forceUpdate] = useReducer((x) => x + 1, 0);
   const { checkLogin } = useAuth();
+  const isReviewed = useReviewerStore((state) => state.isReviewed);
 
   const deleteSongFromMyPlaylist = useCallback(
     (newId?: string) => {
@@ -78,6 +80,15 @@ export default function Playlist() {
         });
     }
   }, [id, updateState]);
+
+  if (!isReviewed) {
+    return (
+      <Instrument
+        title="编钟"
+        description="编钟是中国的传统打击乐器，始于青铜器时代。编钟由青铜铸成，由不同的钟依照大小排列，并悬挂在一个巨大的钟架上。编钟常与编磬组合使用；“金石之声”中的“金”就是指编钟，“石”指编磬。"
+      />
+    );
+  }
 
   return (
     <ScrollView>

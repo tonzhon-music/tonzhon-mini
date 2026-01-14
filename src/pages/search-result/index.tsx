@@ -6,6 +6,8 @@ import SongList from "@/components/song-list";
 import Player from "@/components/player";
 import { SafeArea } from "@nutui/nutui-react-taro";
 import { uniqBy } from "@/utils";
+import { useReviewerStore } from "@/store";
+import Instrument from "@/components/instrument";
 
 import "./index.scss";
 
@@ -17,6 +19,7 @@ export default function SearchResult() {
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchArtistSongLoading, setSearchArtistSongLoading] = useState(false);
   const [searchPlatformLoading, setSearchPlatformLoading] = useState(false);
+  const isReviewed = useReviewerStore((state) => state.isReviewed);
 
   // 整合所有的搜索结果，去重并排序
   const filteredSongs = useMemo(() => {
@@ -95,6 +98,15 @@ export default function SearchResult() {
       Taro.hideLoading();
     }
   }, [searchLoading, searchArtistSongLoading, searchPlatformLoading]);
+
+  if (!isReviewed) {
+    return (
+      <Instrument
+        title="埙"
+        description="中国埙是中国最古老的吹奏乐器之一，由陶土烧制，外形多为椭圆或卵形，音色古朴醇厚，起源可追溯至七千多年前新石器时代，最初可能用于模仿鸟兽声诱捕猎物，后演化为可吹奏旋律的乐器，是古代宫廷雅乐和民间喜爱的乐器。 "
+      />
+    );
+  }
 
   return (
     <ScrollView scrollY>

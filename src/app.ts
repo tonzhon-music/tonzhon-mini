@@ -1,5 +1,5 @@
 import { PropsWithChildren, useEffect } from "react";
-import { backgroundAudioManager, useAuthStore, usePlayerStore, useSettingsStore } from "@/store";
+import { backgroundAudioManager, useAuthStore, usePlayerStore, useReviewerStore, useSettingsStore } from "@/store";
 import Taro, { useLaunch } from "@tarojs/taro";
 import { useAuth, usePlayer } from "@/hooks";
 
@@ -7,6 +7,7 @@ import "@nutui/nutui-react-taro/dist/style.css";
 import "@/assets/font/iconfont.css";
 import "./app.scss";
 import { getAccountInfo } from "./api";
+import { getCloud } from "./cloud";
 
 function App({ children }: PropsWithChildren<any>) {
   const setIsPlaying = usePlayerStore((state) => state.setIsPlaying);
@@ -15,6 +16,7 @@ function App({ children }: PropsWithChildren<any>) {
   const { playNextSong, playPreviousSong } = usePlayer();
   const { refreshUserInfo, refreshFavoriteSongs } = useAuth();
   const setAccountInfo = useAuthStore((state) => state.setAccountInfo);
+  const setIsReviewed = useReviewerStore((state) => state.setIsReviewed);
 
   useLaunch(() => {
     console.log("App Launch");
@@ -111,6 +113,19 @@ function App({ children }: PropsWithChildren<any>) {
       console.log("监听到 seeked 事件");
     });
   }, [playNextSong, playPreviousSong, setIsPlaying, setPlaybackProgress]);
+
+  useEffect(() => {
+    getCloud().then((cloud) => {
+      cloud
+        .database()
+        .collection("tz-settings")
+        .get()
+        .then((res) => {
+          const data = res.data[0] as { isReviewed: boolean } | undefined;
+          setIsReviewed(data?.isReviewed ?? false);
+        });
+    });
+  }, [setIsReviewed]);
 
   useEffect(() => {
     // 初始化登录状态

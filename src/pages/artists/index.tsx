@@ -7,6 +7,8 @@ import { type Artist } from "@/api";
 import { getCloud } from "@/cloud";
 import { clsx } from "@/utils";
 import Taro from "@tarojs/taro";
+import { useReviewerStore } from "@/store";
+import Instrument from "@/components/instrument";
 
 import "./index.scss";
 
@@ -42,6 +44,7 @@ export default function Artists() {
   // 当前选中的分类的 value
   const [selectedCategory, setSelectedCategory] = useState<string>(categories[0].value);
   const [singers, setSingers] = useState<Record<string, Artist[]>>({});
+  const isReviewed = useReviewerStore((state) => state.isReviewed);
 
   useEffect(() => {
     // 分页获取热门歌手
@@ -70,6 +73,15 @@ export default function Artists() {
         });
     });
   }, []);
+
+  if (!isReviewed) {
+    return (
+      <Instrument
+        title="箫"
+        description="中国箫（洞箫）是一种历史悠久的竖吹竹制吹管乐器，音色圆润、幽静典雅，由竹管、吹孔、音孔（六孔或八孔）组成，以其悠扬空灵的音色常用于独奏、琴箫合奏，区别于横吹的笛子，具有独特的文化底蕴和养生价值。 "
+      />
+    );
+  }
 
   return (
     <ScrollView scrollY>
